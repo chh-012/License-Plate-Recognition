@@ -20,13 +20,14 @@ from core.utils import check_environment
 
 app = Flask(__name__)
 
-# 全局检测器实例
+# 全局检测器实例（Vercel serverless 环境下懒加载）
 detector = None
+_detector_lock = False
 
 
 def load_config():
     """加载配置文件"""
-    config_path = 'config.yaml'
+    config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.yaml')
     with open(config_path, 'r', encoding='utf-8') as f:
         return yaml.safe_load(f)
 
@@ -39,6 +40,14 @@ def init_detector():
         raise RuntimeError("环境检查失败")
     detector = PlateDetector(config)
     print("检测器初始化完成")
+
+
+def get_detector():
+    """懒加载获取检测器实例（兼容 Vercel serverless）"""
+    global detector, _detector_lock
+    if detector is None:
+        init_detector()
+    return detector
 
 
 def numpy_to_base64(img):
@@ -81,8 +90,8 @@ def api_recognize():
 
         # 识别
         img_ori = img.copy()
-        result_list = detector._detect_and_recognize(img, img_ori)
-        result_img, result_str = detector._draw_result(img, result_list)
+        result_list = get_detector()._detect_and_recognize(img, img_ori)
+        result_img, result_str = get_detector()._draw_result(img, result_list)
 
         # 构建返回数据
         results = []
@@ -131,8 +140,8 @@ def api_recognize_file():
 
         # 识别
         img_ori = img.copy()
-        result_list = detector._detect_and_recognize(img, img_ori)
-        result_img, result_str = detector._draw_result(img, result_list)
+        result_list = get_detector()._detect_and_recognize(img, img_ori)
+        result_img, result_str = get_detector()._draw_result(img, result_list)
 
         # 构建返回数据
         results = []
@@ -162,7 +171,7 @@ def api_health():
     """健康检查接口"""
     return jsonify({
         'status': 'ok',
-        'device': str(detector.device) if detector else 'not initialized',
+        'device': str(get_detector().device) if get_detector() else 'not initialized',
         'cuda_available': torch.cuda.is_available()
     })
 
@@ -211,8 +220,8 @@ def api_batch_recognize():
 
                 # 识别
                 img_ori = img.copy()
-                result_list = detector._detect_and_recognize(img, img_ori)
-                result_img, result_str = detector._draw_result(img, result_list)
+                result_list = get_detector()._detect_and_recognize(img, img_ori)
+                result_img, result_str = get_detector()._draw_result(img, result_list)
 
                 # 构建结果
                 plates = []
@@ -308,8 +317,8 @@ def api_recognize_video():
 
                 frame_ori = frame.copy()
                 try:
-                    result_list = detector._detect_and_recognize(frame, frame_ori)
-                    result_frame, _ = detector._draw_result(frame, result_list)
+                    result_list = get_detector()._detect_and_recognize(frame, frame_ori)
+                    result_frame, _ = get_detector()._draw_result(frame, result_list)
 
                     for r in result_list:
                         all_plates.append({
