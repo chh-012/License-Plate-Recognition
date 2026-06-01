@@ -1,0 +1,24 @@
+# 虚拟环境
+.venv/
+venv/
+env/
+*.egg-info/
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE
+.vscode/
+.idea/
+
+# 上传/输出文件（根据你的需求，如果想保留就去掉）
+T_T_result/
+
+# 临时文件
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

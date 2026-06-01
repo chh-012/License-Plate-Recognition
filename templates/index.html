@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>车牌识别系统</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-car"></i>
+                <span>车牌识别系统</span>
+            </div>
+            <div class="nav-status">
+                <span class="status-dot" id="statusDot"></span>
+                <span id="statusText">检测中...</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-container">
+        <!-- 左侧：上传区域 -->
+        <section class="upload-section">
+            <!-- 模式切换标签 -->
+            <div class="mode-tabs">
+                <button class="mode-tab active" data-mode="single">
+                    <i class="fas fa-image"></i> 单张识别
+                </button>
+                <button class="mode-tab" data-mode="batch">
+                    <i class="fas fa-images"></i> 批量识别
+                </button>
+                <button class="mode-tab" data-mode="video">
+                    <i class="fas fa-video"></i> 视频识别
+                </button>
+            </div>
+
+            <!-- 单张识别区域 -->
+            <div class="single-mode" id="singleMode">
+                <div class="section-header">
+                    <i class="fas fa-upload"></i>
+                    <h2>上传图片</h2>
+                </div>
+
+                <!-- 拖拽上传区域 -->
+                <div class="drop-zone" id="dropZone">
+                    <div class="drop-zone-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p class="drop-text">拖拽图片到此处</p>
+                        <p class="drop-subtext">或点击下方按钮选择文件</p>
+                        <button class="btn btn-primary" id="selectBtn">
+                            <i class="fas fa-folder-open"></i> 选择图片
+                        </button>
+                        <p class="drop-hint">支持 JPG / PNG / BMP 格式</p>
+                    </div>
+                    <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.bmp" hidden>
+                </div>
+
+                <!-- 原图预览 -->
+                <div class="preview-container" id="previewContainer" style="display:none;">
+                    <div class="section-header">
+                        <i class="fas fa-image"></i>
+                        <h2>原始图片</h2>
+                        <button class="btn btn-sm btn-outline" id="clearBtn">
+                            <i class="fas fa-times"></i> 清除
+                        </button>
+                    </div>
+                    <div class="image-wrapper">
+                        <img id="previewImage" alt="预览图片">
+                    </div>
+                </div>
+
+                <!-- 识别按钮 -->
+                <button class="btn btn-recognize" id="recognizeBtn" disabled>
+                    <i class="fas fa-search"></i> 开始识别
+                </button>
+            </div>
+
+            <!-- 批量识别区域 -->
+            <div class="batch-mode" id="batchMode" style="display:none;">
+                <div class="section-header">
+                    <i class="fas fa-images"></i>
+                    <h2>批量上传</h2>
+                </div>
+
+                <!-- 批量拖拽上传区域 -->
+                <div class="drop-zone" id="batchDropZone">
+                    <div class="drop-zone-content">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p class="drop-text">拖拽多张图片到此处</p>
+                        <p class="drop-subtext">或点击下方按钮选择多个文件</p>
+                        <button class="btn btn-primary" id="batchSelectBtn">
+                            <i class="fas fa-folder-open"></i> 选择图片
+                        </button>
+                        <p class="drop-hint">支持 JPG / PNG / BMP 格式，可同时选择多张</p>
+                    </div>
+                    <input type="file" id="batchFileInput" accept=".jpg,.jpeg,.png,.bmp" multiple hidden>
+                </div>
+
+                <!-- 文件列表 -->
+                <div class="file-list-container" id="fileListContainer" style="display:none;">
+                    <div class="section-header">
+                        <i class="fas fa-list"></i>
+                        <h2>待识别文件 <span id="fileCount">(0)</span></h2>
+                        <button class="btn btn-sm btn-outline" id="batchClearBtn">
+                            <i class="fas fa-times"></i> 清空
+                        </button>
+                    </div>
+                    <div class="file-list" id="fileList">
+                        <!-- 动态生成文件列表 -->
+                    </div>
+                </div>
+
+                <!-- 批量识别按钮 -->
+                <button class="btn btn-recognize" id="batchRecognizeBtn" disabled>
+                    <i class="fas fa-search"></i> 开始批量识别
+                </button>
+            </div>
+
+            <!-- 视频识别区域 -->
+            <div class="video-mode" id="videoMode" style="display:none;">
+                <div class="section-header">
+                    <i class="fas fa-video"></i>
+                    <h2>上传视频</h2>
+                </div>
+
+                <!-- 视频拖拽上传区域 -->
+                <div class="drop-zone" id="videoDropZone">
+                    <div class="drop-zone-content">
+                        <i class="fas fa-film"></i>
+                        <p class="drop-text">拖拽视频文件到此处</p>
+                        <p class="drop-subtext">或点击下方按钮选择视频</p>
+                        <button class="btn btn-primary" id="videoSelectBtn">
+                            <i class="fas fa-folder-open"></i> 选择视频
+                        </button>
+                        <p class="drop-hint">支持 MP4 / AVI / MOV / MKV 格式</p>
+                    </div>
+                    <input type="file" id="videoFileInput" accept=".mp4,.avi,.mov,.mkv" hidden>
+                </div>
+
+                <!-- 视频信息 -->
+                <div class="video-info-container" id="videoInfoContainer" style="display:none;">
+                    <div class="section-header">
+                        <i class="fas fa-info-circle"></i>
+                        <h2>视频信息</h2>
+                        <button class="btn btn-sm btn-outline" id="videoClearBtn">
+                            <i class="fas fa-times"></i> 清除
+                        </button>
+                    </div>
+                    <div class="video-info" id="videoInfo">
+                        <span id="videoFileName">-</span>
+                        <span id="videoFileSize">-</span>
+                    </div>
+                </div>
+
+                <!-- 视频识别按钮 -->
+                <button class="btn btn-recognize" id="videoRecognizeBtn" disabled>
+                    <i class="fas fa-play"></i> 开始视频识别
+                </button>
+
+                <!-- 视频结果播放器 -->
+                <div class="video-result-container" id="videoResultContainer" style="display:none;">
+                    <div class="section-header">
+                        <i class="fas fa-play-circle"></i>
+                        <h2>识别结果视频</h2>
+                    </div>
+                    <video id="resultVideo" controls></video>
+                    <a id="downloadVideoBtn" class="btn btn-primary" style="margin-top:12px; text-decoration:none;" download="result.mp4">
+                        <i class="fas fa-download"></i> 下载结果视频
+                    </a>
+                </div>
+
+                <!-- 视频统计 -->
+                <div class="video-stats" id="videoStats" style="display:none;">
+                    <!-- 动态生成 -->
+                </div>
+            </div>
+        </section>
+
+        <!-- 右侧：结果区域 -->
+        <section class="result-section">
+            <div class="section-header">
+                <i class="fas fa-clipboard-check"></i>
+                <h2>识别结果</h2>
+            </div>
+
+            <!-- 结果图片 -->
+            <div class="result-image-container" id="resultImageContainer">
+                <div class="result-placeholder" id="resultPlaceholder">
+                    <i class="fas fa-search"></i>
+                    <p>上传图片并点击识别</p>
+                    <p class="sub">识别结果将在此处显示</p>
+                </div>
+                <img id="resultImage" alt="识别结果" style="display:none;">
+            </div>
+
+            <!-- 车牌信息卡片 -->
+            <div class="result-cards" id="resultCards" style="display:none;">
+                <!-- 动态生成 -->
+            </div>
+
+            <!-- 批量结果列表 -->
+            <div class="batch-results" id="batchResults" style="display:none;">
+                <div class="batch-summary" id="batchSummary">
+                    <!-- 批量识别统计 -->
+                </div>
+                <div class="batch-list" id="batchList">
+                    <!-- 批量识别结果列表 -->
+                </div>
+            </div>
+
+            <!-- 识别耗时 -->
+            <div class="time-info" id="timeInfo" style="display:none;">
+                <i class="fas fa-clock"></i>
+                <span>识别耗时: <strong id="timeValue">0</strong> 秒</span>
+            </div>
+        </section>
+    </main>
+
+    <!-- 底部信息栏 -->
+    <footer class="footer">
+        <p>基于 YOLOv8 + CNN 深度学习模型 | 支持单层/双层车牌识别</p>
+    </footer>
+
+    <!-- 加载遮罩 -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p id="loadingText">正在识别中...</p>
+            <p class="loading-progress" id="loadingProgress"></p>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

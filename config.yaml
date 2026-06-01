@@ -1,0 +1,48 @@
+# 车牌识别系统配置文件
+# 修改此文件来调整程序设置，无需修改代码
+
+# 模型路径设置
+models:
+  # YOLOv8检测模型路径 - 用于检测车牌位置
+  detect_model: "weights/yolov8s.pt"
+  # 车牌字符识别模型路径 - 用于识别车牌号码和颜色
+  rec_model: "weights/plate_rec_color.pth"
+
+# 输入输出设置
+paths:
+  # 输入图片/视频文件夹路径
+  input_path: "T_T_imgs"
+  # 识别结果保存路径
+  output_path: "T_T_result"
+
+# 识别参数设置
+params:
+  # 输入图像尺寸（建议保持640）
+  img_size: 640
+  # 检测置信度阈值（0-1之间，越高越严格）
+  conf_threshold: 0.3
+  # NMS IOU阈值（0-1之间，用于去除重复框）
+  iou_threshold: 0.5
+
+# 显示设置
+display:
+  # 视频处理时是否显示窗口（服务器环境建议设为false）
+  show_video: true
+  # 识别结果字体大小
+  font_size: 21
+
+# Web服务设置
+web:
+  # 服务监听地址（0.0.0.0表示所有网卡）
+  host: "0.0.0.0"
+  # 服务端口号
+  port: 5000
+  # 调试模式（开发时设为true，生产环境设为false）
+  debug: false
+
+# 支持的文件格式
+formats:
+  # 支持的图片格式
+  images: [".jpg", ".jpeg", ".png", ".bmp"]
+  # 支持的视频格式
+  videos: [".mp4", ".avi", ".mov", ".mkv"]
